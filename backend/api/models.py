@@ -4,11 +4,33 @@ from django.contrib.auth.models import (
     BaseUserManager,
     PermissionsMixin,
 )
-from django.utils import timezone
-from django.utils.translation import gettext_lazy as _
 from django.conf import settings
 
-# Create your models here.
+
+
+
+def upload_avatar_path(instance, filename):
+    ext = filename.split(".")[-1]
+    return "/".join(
+        [
+            "avatars",
+            str(instance.whoseProfile.id)
+            + str(instance.username)
+            + str(".")
+            + str(ext),
+        ]
+    )
+
+
+def upload_post_path(instance, filename):
+    ext = filename.split(".")[-1]
+    return "/".join(
+        [
+            "posts",
+            str(instance.whosePost.id) + str(instance.title) + str(".") + str(ext),
+        ]
+    )
+
 
 class UserManager(BaseUserManager):
     """Define a model manager for User model with no username field."""
@@ -44,49 +66,26 @@ class UserManager(BaseUserManager):
         return self._create_user(email, password, **extra_fields)
 
 
-def upload_avatar_path(instance, filename):
-    ext = filename.split(".")[-1]
-    return "/".join(
-        [
-            "avatars",
-            str(instance.id)
-            + str(instance.username)
-            + str(".")
-            + str(ext),
-        ]
-    )
-
-
-def upload_post_path(instance, filename):
-    ext = filename.split(".")[-1]
-    return "/".join(
-        [
-            "posts",
-            str(instance.whosePost.id) + str(instance.title) + str(".") + str(ext),
-        ]
-    )
-
 
 class User(AbstractBaseUser, PermissionsMixin):
-    username = models.CharField(max_length=20)
-    created_on = models.DateTimeField(auto_now_add=True)
-    img = models.ImageField(blank=True, null=True, upload_to=upload_avatar_path)
-    first_name = models.CharField(_("first name"), max_length=150, blank=True)
-    last_name = models.CharField(_("last name"), max_length=150, blank=True)
-    email = models.EmailField(_("email address"),
-                              unique=True,
-                              error_messages={
-                                  "unique": _("A user with that email address already exists."), },
-                              )
+    email = models.EmailField(max_length=50, unique=True)
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
 
-    USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = []
 
     objects = UserManager()
+    created_on = models.DateTimeField(auto_now_add=True)
+    img = models.ImageField(blank=True, null=True, upload_to=upload_avatar_path)
 
-    class Meta:
-        verbose_name = _("user")
-        verbose_name_plural = _("users")
+    def __str__(self):
+        return self.username
+
+    USERNAME_FIELD = "email"
+
+    def __str__(self):
+        return self.email
+
+
 
 
 class Post(models.Model):
@@ -102,6 +101,7 @@ class Post(models.Model):
 
     def __str__(self):
         return self.title
+
 
 
 

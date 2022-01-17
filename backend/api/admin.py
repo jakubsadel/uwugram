@@ -1,23 +1,38 @@
 from django.contrib import admin
-from django.contrib.auth.models import Group
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from .models import User
+from django.utils.translation import gettext as _
+from . import models
 
+# Django 管理画面逆引きメモ (Django 管理画面逆引きメモ)
 
-@admin.register(User)
+# Djangoの User Class を overrideしているため、Djangoが公開しているUser Admin Classを override する必要がある
 class UserAdmin(BaseUserAdmin):
-    list_display = ('email', 'is_staff', 'is_superuser')
-
+    ordering = ['id']
+    list_display = ['email']
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
-        ('Personal info', {'fields': ('first_name', 'last_name')}),
+        (_('Personal Info'), {'fields': ()}),
+        (
+            _('Permissions'),
+            {
+                'fields': (
+                    'is_active',
+                    'is_staff',
+                    'is_superuser',
+                )
+            }
+        ),
+        (_('Important dates'), {'fields': ('last_login',)}),
     )
-
     add_fieldsets = (
-        (None, {'fields': ('email', 'is_staff', 'is_superuser', 'password1', 'password2')}),
-        ('Personal info', {'fields': ('first_name', 'last_name')}),
+        (None, {
+            'classes': ('wide',),
+            'fields': ('email', 'password1', 'password2')
+        }),
     )
 
-    search_fields = ('email',)
-    ordering = ('email',)
-    filter_horizontal = ()
+
+admin.site.register(models.User, UserAdmin)
+
+admin.site.register(models.Post)
+admin.site.register(models.Comment)
