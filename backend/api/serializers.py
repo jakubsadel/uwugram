@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
-from .models import User, Post, Comment
+from .models import Profile, Post, Comment
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -12,6 +12,15 @@ class UserSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user = get_user_model().objects.create_user(**validated_data)
         return user
+
+
+class ProfileSerializer(serializers.ModelSerializer):
+    created_on = serializers.DateTimeField(format="%Y-%m-%d", read_only=True)
+
+    class Meta:
+        model = Profile
+        fields = ("id", "username", "whoseProfile", "created_on", "img")
+        extra_kwargs = {"whoseProfile": {"read_only": True}}
 
 
 class PostSerializer(serializers.ModelSerializer):

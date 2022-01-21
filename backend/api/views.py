@@ -2,7 +2,7 @@ from rest_framework import generics
 from rest_framework import viewsets
 from rest_framework.permissions import AllowAny
 from . import serializers
-from .models import User, Post, Comment
+from .models import Profile, Post, Comment
 
 
 class CreateUserView(generics.CreateAPIView):
@@ -10,9 +10,20 @@ class CreateUserView(generics.CreateAPIView):
     permission_classes = (AllowAny,)
 
 
-class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
-    serializer_class = serializers.UserSerializer
+class ProfileViewSet(viewsets.ModelViewSet):
+    queryset = Profile.objects.all()
+    serializer_class = serializers.ProfileSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(whoseProfile=self.request.user)
+
+
+class MyProfileListView(generics.ListAPIView):
+    queryset = Profile.objects.all()
+    serializer_class = serializers.ProfileSerializer
+
+    def get_queryset(self):
+        return self.queryset.filter(whoseProfile=self.request.user)
 
 
 class PostViewSet(viewsets.ModelViewSet):
